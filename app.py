@@ -2,7 +2,6 @@ import os
 import logging
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from groq import Groq
 
@@ -16,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# ✅ Enable CORS
-CORS(app)
+
 
 # ✅ Initialize Groq Client
 client = Groq(api_key=GROQ_API_KEY)
