@@ -1,0 +1,5 @@
+flask
+gunicorn
+gpt4all
+vaderSentiment
+requests
