@@ -1,5 +1,5 @@
 flask
 gunicorn
-gpt4all
+python-dotenv
 vaderSentiment
 requests

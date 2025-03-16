@@ -1,9 +1,13 @@
 import os
 import logging
-from pathlib import Path
+import requests
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
-from gpt4all import GPT4All
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+# ✅ Load API Key from .env
+load_dotenv()
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 # ✅ Setup Logging
 logging.basicConfig(level=logging.INFO)
@@ -11,20 +15,10 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# ✅ Model Directory
-MODEL_DIR = Path("./models")
-MODEL_DIR.mkdir(parents=True, exist_ok=True)
-
-# ✅ Model Name (Let GPT4All Auto-Download)
-MODEL_NAME = "Nous Hermes 2 Mistral DPO"
-
-# ✅ Load GPT-4All Model (Auto-downloads if missing)
-try:
-    model = GPT4All(MODEL_NAME, model_path=str(MODEL_DIR))
-    logger.info("✅ GPT-4All Model Loaded Successfully!")
-except Exception as e:
-    logger.error(f"❌ Failed to Load GPT-4All Model: {str(e)}")
-    raise
+# ✅ Hugging Face API Details
+MODEL_NAME = "Qwen/Qwen-QwQ-32B"
+API_URL = f"https://api-inference.huggingface.co/models/{MODEL_NAME}"
+HEADERS = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
 
 # ✅ Initialize Sentiment Analyzer
 analyzer = SentimentIntensityAnalyzer()
@@ -34,8 +28,12 @@ def chat():
     try:
         data = request.json
         user_message = data.get("message", "")
-        response = model.generate(user_message)
-        return jsonify({"response": response})
+
+        response = requests.post(API_URL, headers=HEADERS, json={"inputs": user_message})
+        result = response.json()
+        generated_text = result[0]["generated_text"] if isinstance(result, list) else "Error: Invalid response"
+
+        return jsonify({"response": generated_text})
     except Exception as e:
         logger.error(f"❌ Chat Error: {str(e)}")
         return jsonify({"error": "An error occurred while processing your request"}), 500
@@ -51,7 +49,6 @@ def analyze():
         logger.error(f"❌ Sentiment Analysis Error: {str(e)}")
         return jsonify({"error": "An error occurred while processing your request"}), 500
 
-# ✅ Production Deployment
+# ✅ Production Deployment with Gunicorn
 if __name__ == "__main__":
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
