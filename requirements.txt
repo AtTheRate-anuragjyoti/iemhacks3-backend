@@ -2,4 +2,4 @@ flask
 gunicorn
 python-dotenv
 vaderSentiment
-requests
+groq
