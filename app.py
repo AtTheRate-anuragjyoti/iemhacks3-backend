@@ -2,6 +2,7 @@ import os
 import logging
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # ✅ Import Flask-CORS
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from groq import Groq
 
@@ -10,12 +11,11 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # ✅ Setup Logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-
-
+CORS(app)  # ✅ Allow all origins (for testing)
 
 # ✅ Initialize Groq Client
 client = Groq(api_key=GROQ_API_KEY)
@@ -31,7 +31,7 @@ def chat():
 
         # ✅ Send request to Groq API
         response = client.chat.completions.create(
-            model="llama3-70b-8192",  # Change to any available model
+            model="llama3-70b-8192",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": user_message}
